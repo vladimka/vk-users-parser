@@ -8,20 +8,23 @@ import store from './store';
 import modals from './modals/index';
 
 const App = () => {
-	let state = store.getState();
+	const [activePanel, setPanel] = useState('home');
+	const [activeModal, setModal] = useState(null);
+	const [popout, setPopout] = useState(<ScreenSpinner size="large" />);
+	const [token, setToken] = useState(null);
 
-	store.subscribe(() => state = store.getState());
+	const setActivePanel = e => {
+		if(typeof e == 'string')
+			return setPanel(e);
 
-	const setPanel = e => {
-		store.dispatch({ type : 'SET_ACTIVE_PANEL', payload : e.currentTarget.dataset.to });
+		setPanel(e.currentTarget.dataset.to);
 	};
 
-	const setModal = e => {
-		store.dispatch({ type : 'SET_ACTIVE_MODAL', payload : e.currentTarget.dataset.to });
-	}
+	const setActiveModal = e => {
+		if(typeof e == 'string')
+			return setModal(e);
 
-	const setSpinner = spinner => {
-		store.dispatch({ type : 'SET_POPOUT', payload : spinner });
+		setModal(e.currentTarget.dataset.to);
 	}
 
 	useEffect(() => {
@@ -36,7 +39,8 @@ const App = () => {
 			try{
 				const token = await bridge.send('VKWebAppGetAuthToken', { scope : 'users,groups', app_id : 7918696 });
 				store.dispatch({ type : 'SET_TOKEN', payload : token.access_token });
-				setSpinner(null);
+				setToken(token.access_token);
+				setPopout(null);
 			}catch(e){
 				console.log(e);
 			}
@@ -47,8 +51,8 @@ const App = () => {
 	return (
 		<AdaptivityProvider>
 			<AppRoot>
-				<View activePanel={state.activePanel} popout={state.popout} modal={modals}>
-					<Home id='home' setPanel={setPanel} token={state.token} setSpinner={setSpinner} setModal={setModal}  />
+				<View activePanel={activePanel} popout={popout} modal={modals}>
+					<Home id='home' setPanel={setActivePanel} token={token} setModal={setActiveModal} setPopout={setPopout}  />
 				</View>
 			</AppRoot>
 		</AdaptivityProvider>
